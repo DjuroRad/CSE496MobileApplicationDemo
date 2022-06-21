@@ -1,0 +1,91 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id 'kotlin-android'
+    id 'org.jetbrains.dokka'
+}
+
+android {
+    compileSdk 31 //changed here from 32 to 31, since documentation still isn't available for sdk 32
+    //downgraded to 30 since 31 will be required from August 22 and there are still some bugs and also dealing with runtime permissions is hell
+    defaultConfig {
+        applicationId "com.example.externalsensorframework"
+        minSdk 21
+        targetSdk 31 //changed here from 32 to 31, since documentation still isn't available for sdk 32
+        //downgraded to 30 since 31 will be required from August 22 and there are still some bugs and also dealing with runtime permissions is hell
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+    //added because of Error: 2 files found with path 'META-INF/NOTICE.md'.
+    //Adding a packagingOptions block may help, please refer to
+    packagingOptions {
+        resources.excludes.add("META-INF/*")
+    }
+}
+//output documentation in its own directory
+tasks.dokkaHtml.configure {
+    outputDirectory.set(file("../documentation/html"))
+}
+//separate inherited functions
+tasks.withType(dokkaHtml.getClass()).configureEach {
+    pluginsMapConfiguration.set(
+            ["org.jetbrains.dokka.base.DokkaBase": """{ "separateInheritedMembers": true}"""]
+    )
+}
+//remove deprecated functions from documentation
+dokkaHtml.configure {
+    dokkaSourceSets {
+        named("main") {
+            skipDeprecated.set(true)
+        }
+    }
+}
+//show non public members, like companion objects
+dokkaHtml.configure {
+    dokkaSourceSets {
+        named("main") {
+            includeNonPublic.set(true)
+        }
+    }
+}
+
+dependencies {
+
+    implementation 'androidx.core:core-ktx:1.6.0'
+    implementation 'androidx.appcompat:appcompat:1.3.1'
+    implementation 'com.google.android.material:material:1.5.0-alpha02'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.3'
+
+    //for navigation component ( i am using single activity design for demo application )
+    implementation 'androidx.navigation:navigation-fragment-ktx:2.4.2'
+    implementation 'androidx.navigation:navigation-ui-ktx:2.4.2'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    //for navigation component end
+
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
+
+    //documentation
+    implementation "org.jetbrains.dokka:dokka-gradle-plugin:1.4.30"
+
+    //graph view
+    implementation 'com.jjoe64:graphview:4.2.2'
+
+}
